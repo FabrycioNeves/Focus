@@ -1,76 +1,84 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
-  TouchableWithoutFeedback,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
   Dimensions,
+  Platform,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import Buttonn from "../Buttonn";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
+import { useTaskGlobalStore } from "../../settingsNotifications/GlobalSatesNoti/TaskStore";
 
 const { height } = Dimensions.get("window");
 
 export default function InStyles({
   handleAddTask,
   Abrir,
-  fechar,
-  visible,
   setVisible,
+  visible,
 }) {
   const [task, setTask] = useState("");
   const router = useRouter();
 
-  function sendTask() {
+  const setTaskGlobal = useTaskGlobalStore((state) => state.setTaskGlobal);
+
+  const sendTask = () => {
     if (task.trim()) {
       handleAddTask(task);
+      setTaskGlobal(task);
+      setVisible(false);
       setTask("");
-      setVisible(false); //envia a task do input para ser adcionada na lista
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
       {visible && (
-        <>
-          <View style={styles.InputContainer}>
-            <TextInput
-              style={styles.inputText}
-              autoFocus={true}
-              value={task}
-              onChangeText={setTask}
-              placeholder="Digite aqui"
-              textAlignVertical="top"
-              multiline={true}
-            />
-            <View style={styles.iconc}>
-              <MaterialIcons
-                name="notifications"
-                size={35}
-                color={"#50c878"}
-                onPress={() => router.push("notificacoesWrite")}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.InputContainer}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                style={styles.inputText}
+                autoFocus={true}
+                value={task}
+                onChangeText={setTask}
+                placeholder="Digite aqui"
+                textAlignVertical="top"
+                multiline={true}
               />
-              <MaterialIcons
-                name="schedule"
-                size={35}
-                color={"#50c878"}
-                onPress={() => router.push("notificacoes")}
-              />
-              <MaterialIcons name="timelapse" size={35} color={"#50c878"} />
-              <MaterialIcons
-                name="check"
-                size={35}
-                color={"#50c878"}
-                onPress={sendTask}
-              />
+              <View style={styles.iconc}>
+                <MaterialIcons
+                  name="notifications"
+                  size={35}
+                  color={"#50c878"}
+                  onPress={() => router.push("notificacoesWrite")}
+                />
+                <MaterialIcons
+                  name="schedule"
+                  size={35}
+                  color={"#50c878"}
+                  onPress={() => router.push("notificacoes")}
+                />
+                <MaterialIcons name="timelapse" size={35} color={"#50c878"} />
+                <MaterialIcons
+                  name="check"
+                  size={35}
+                  color={"#50c878"}
+                  onPress={sendTask}
+                />
+              </View>
             </View>
-          </View>
-        </>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       )}
-
       <Buttonn onPress={Abrir} />
     </View>
   );
@@ -81,9 +89,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     justifyContent: "flex-end",
     alignItems: "center",
-    position: "relative",
   },
-
   InputContainer: {
     height: Platform.OS === "ios" ? height * 0.3 : height * 0.4,
     width: "100%",
@@ -92,7 +98,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     zIndex: 102,
   },
-
   inputText: {
     padding: 15,
     margin: 12,

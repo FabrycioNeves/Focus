@@ -1,21 +1,30 @@
 import React, { useState } from "react";
-import { View, StyleSheet, TextInput, Text, Switch } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TextInput,
+  Text,
+  Switch,
+  Button,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTaskGlobalStore } from "../../settingsNotifications/GlobalSatesNoti/TaskStore";
+import { useWriteonStore } from "../../settingsNotifications/GlobalSatesNoti/NotificationStore";
 
 export default function Notificações() {
   const [notiPadrao, setnotiPadrao] = useState(false);
   const [notificacao1, setNotificacao1] = useState("");
   const [notificacao2, setNotificacao2] = useState("");
   const [alarmeAtivado, setalarmeAtivado] = useState(false);
-  const supostaTask = "Estudar React Native";
+
+  const { taskGlobal } = useTaskGlobalStore.getState();
+  const setWriteNoti = useWriteonStore((state) => state.setWriteNoti);
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Notificação padrão */}
       <View style={styles.padrao}>
-        <Text style={styles.text}>
-          Notificação padrão: {supostaTask.length <= 10 ? supostaTask : "sua"}
-        </Text>
+        <Text style={styles.text}>Notificação padrão: {taskGlobal}</Text>
         <Switch
           style={styles.swt}
           value={notiPadrao}
@@ -60,6 +69,12 @@ export default function Notificações() {
           value={alarmeAtivado}
           onValueChange={setalarmeAtivado}
           trackColor={{ false: "#121212", true: "#00ff00" }}
+        />
+        <Button
+          onPress={() => {
+            setWriteNoti(notificacao1);
+          }}
+          title="enviar"
         />
       </View>
     </SafeAreaView>

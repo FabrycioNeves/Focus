@@ -1,12 +1,11 @@
-// ModalCalendarPicker.js
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { View, Modal, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import { ptBr } from "../../../utils/LocaleCalendarConfig";
+import { ptBr } from "../utils/LocaleCalendarConfig";
+
 LocaleConfig.locales["pt-br"] = ptBr;
 LocaleConfig.defaultLocale = "pt-br";
-console.log("ptBr:", ptBr);
 
 export default function ModalCalendarPicker({
   visible,
@@ -15,8 +14,10 @@ export default function ModalCalendarPicker({
   setSelectDate,
 }) {
   const handleDayPress = (day) => {
-    setSelectDate(day.dateString);
-    console.log("dia selecionado " + day.dateString);
+    const [year, month, dayNum] = day.dateString.split("-").map(Number); //Convertendo strings para numeros
+    const selected = new Date(year, month - 1, dayNum); //passando em formato date
+    setSelectDate(selected);
+    console.log("dia selecionado:", selected);
   };
 
   return (
@@ -31,10 +32,12 @@ export default function ModalCalendarPicker({
                 name={`chevron-${direction}`}
               />
             )}
-            minDate={new Date().toISOString().split("T")[0]}
             onDayPress={handleDayPress}
             markedDates={{
-              [selectedDate]: { selected: true, selectedColor: "#50c878" },
+              [selectedDate?.toISOString().split("T")[0]]: {
+                selected: true,
+                selectedColor: "#50c878",
+              },
             }}
             theme={{
               selectedDayBackgroundColor: "#50c878",
@@ -63,7 +66,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
   },
-
   modalContent: {
     backgroundColor: "#fff",
     borderRadius: 20,

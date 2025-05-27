@@ -2,7 +2,6 @@ import React from "react";
 import { FlatList, View, Text, StyleSheet } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
-// Componente memoizado
 const Lista = React.memo(function Lista({ tasks }) {
   return (
     <View style={styles.container}>

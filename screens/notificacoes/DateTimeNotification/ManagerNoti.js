@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,25 +7,45 @@ import {
   Platform,
   StyleSheet,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { MaterialIcons } from "@expo/vector-icons";
-import ModalCalendarPicker from "./modalCalendar";
+import DateTimePicker from "@react-native-community/datetimepicker";
+
+import ModalCalendarPicker from "../../../settingsNotifications/ModalCalendar";
+import {
+  registerForPushNotificationsAsync,
+  scheduleNotification,
+} from "../../../settingsNotifications/ExpoNotifications.js/configNotification";
+
+import { useNotificationStore } from "../../../settingsNotifications/GlobalSatesNoti/DateStore";
+
+const setFinalDateTime = useNotificationStore(
+  (state) => state.setFinalDateTime
+);
 
 export default function NotiTime() {
   const [repeticoes, setRepeticoes] = useState("none");
   const [repeticoesModalVisible, setRepeticoesModalVisible] = useState(false);
 
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
   const [dateModalVisible, setDateModalVisible] = useState(false);
+
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+  }, []);
 
   const handlePickerChange = (itemValue) => {
     setRepeticoes(itemValue);
-    setRepeticoesModalVisible(false); // fecha o modal depois de escolher
+    setRepeticoesModalVisible(false);
   };
 
-  // ✅ Função reutilizável para exibir o texto da repetição no ios
   const getRepeticaoLabel = (valor) => {
+    //logica de label para o IOS
     switch (valor) {
       case "daily":
         return "Diariamente";
@@ -39,26 +59,120 @@ export default function NotiTime() {
     }
   };
 
+  const formatTime = (date) => {
+    //formatação de do time para o place holder
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatDate = (date) => {
+    //formatação do calendario para o place holder
+    if (!date) return "Selecione a data";
+    return date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const combineDateAndTime = (date, time) => {
+    //combinação do Time e Date para enviar ao expo notification
+    if (!date || !time) return null;
+    const combined = new Date(date);
+    combined.setHours(time.getHours());
+    combined.setMinutes(time.getMinutes());
+    combined.setSeconds(0);
+    combined.setMilliseconds(0);
+    return combined;
+  };
+
+  const onTimeChange = (event, time) => {
+    //função change para o time,enviando a hora escolhida para o selectTime em formato Date
+    if (time) setSelectedTime(time);
+    if (Platform.OS === "android") {
+      setShowTimePicker(false);
+    }
+  };
+
+  const handleScheduleNotification = () => {
+    const finalDateTime = combineDateAndTime(selectedDate, selectedTime);
+    if (!finalDateTime) {
+      Alert.alert("Atenção", "Selecione uma data e hora válidas!");
+      return;
+    }
+    if (finalDateTime <= new Date()) {
+      Alert.alert("Data inválida", "Escolha uma data e hora no futuro.");
+      return;
+    }
+
+    // Atualizando o Zustand store com o finalDateTime
+    setFinalDateTime(finalDateTime);
+
+    scheduleNotification(finalDateTime);
+    Alert.alert("Sucesso", "Notificação agendada com sucesso!");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.ContForm}>
         <Text style={styles.questText}>Definir data:</Text>
-
         <TouchableOpacity
           style={styles.inputContainer}
           onPress={() => setDateModalVisible(true)}
         >
-          <Text style={styles.placeholderText}>
-            {selectedDate ? selectedDate : "Selecione a data"}
-          </Text>
+          <Text style={styles.placeholderText}>{formatDate(selectedDate)}</Text>
           <MaterialIcons name="calendar-today" size={24} color="#a1a1a1" />
         </TouchableOpacity>
 
         <Text style={styles.questText}>Definir hora:</Text>
-        <View style={styles.inputContainer}>
-          <Text style={styles.placeholderText}>Selecione a hora</Text>
+        <TouchableOpacity
+          style={styles.inputContainer}
+          onPress={() => setShowTimePicker(true)}
+        >
+          <Text style={styles.placeholderText}>
+            {selectedTime ? formatTime(selectedTime) : "Selecione a hora"}
+          </Text>
           <MaterialIcons name="access-time" size={24} color="#a1a1a1" />
-        </View>
+        </TouchableOpacity>
+
+        {/* Time Picker Android */}
+        {showTimePicker && Platform.OS === "android" && (
+          <DateTimePicker
+            value={selectedTime || new Date()}
+            mode="time"
+            is24Hour={true}
+            display="default"
+            onChange={onTimeChange}
+          />
+        )}
+
+        {/* Time Picker iOS */}
+        <Modal
+          visible={showTimePicker && Platform.OS === "ios"}
+          transparent
+          animationType="slide"
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <DateTimePicker
+                value={selectedTime || new Date()}
+                mode="time"
+                is24Hour={true}
+                display="spinner"
+                onChange={(event, time) => time && setSelectedTime(time)}
+                themeVariant="light"
+              />
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowTimePicker(false)}
+              >
+                <Text style={styles.closeButtonText}>Confirmar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         <Text style={styles.questText}>Definir repetições:</Text>
 
@@ -90,7 +204,6 @@ export default function NotiTime() {
                     <Picker.Item label="Semanalmente" value="weekly" />
                     <Picker.Item label="Mensalmente" value="monthly" />
                   </Picker>
-
                   <TouchableOpacity
                     style={styles.closeButton}
                     onPress={() => setRepeticoesModalVisible(false)}
@@ -115,9 +228,16 @@ export default function NotiTime() {
             </Picker>
           </View>
         )}
+
+        {/* Botão de agendamento */}
+        <TouchableOpacity
+          style={[styles.closeButton, { marginTop: 10 }]}
+          onPress={handleScheduleNotification}
+        >
+          <Text style={styles.closeButtonText}>Agendar Notificação</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* MODAL DE CALENDÁRIO */}
       <ModalCalendarPicker
         visible={dateModalVisible}
         onClose={() => setDateModalVisible(false)}
