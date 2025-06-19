@@ -1,38 +1,38 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   StyleSheet,
   TextInput,
   Text,
-  Switch,
-  Button,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTaskGlobalStore } from "../../settingsNotifications/GlobalSatesNoti/TaskStore";
-import { useWriteonStore } from "../../settingsNotifications/GlobalSatesNoti/NotificationStore";
+import { useTaskStore } from "../../settingsNotifications/GlobalSatesNoti/TaskStore";
+import { useNotificationStore } from "../../settingsNotifications/GlobalSatesNoti/NotificationStore";
 
 export default function Notificações() {
-  const [notiPadrao, setnotiPadrao] = useState(false);
-  const [notificacao1, setNotificacao1] = useState("");
-  const [notificacao2, setNotificacao2] = useState("");
-  const [alarmeAtivado, setalarmeAtivado] = useState(false);
-
-  const { taskGlobal } = useTaskGlobalStore.getState();
-  const setWriteNoti = useWriteonStore((state) => state.setWriteNoti);
+  const { tasks } = useTaskStore();
+  // Obtém o valor atual de notification1 do Zustand
+  const notification1 = useNotificationStore((state) => state.notification1);
+  const setNotification1 = useNotificationStore(
+    // Função para atualizar notification1 no Zustand
+    (state) => state.setNotification1
+  );
+  // Obtém o valor atual de notification2 do Zustand
+  const notification2 = useNotificationStore((state) => state.notification2);
+  const setNotification2 = useNotificationStore(
+    // Função para atualizar notification2 no Zustand
+    (state) => state.setNotification2
+  );
+  // Função que será chamada ao clicar no botão "Enviar Notificações"
+  const handleSendNotifications = () => {
+    // Apenas loga no console os valores atuais de notification1 e notification2
+    console.log("Notificação 1:", notification1);
+    console.log("Notificação 2:", notification2);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Notificação padrão */}
-      <View style={styles.padrao}>
-        <Text style={styles.text}>Notificação padrão: {taskGlobal}</Text>
-        <Switch
-          style={styles.swt}
-          value={notiPadrao}
-          onValueChange={setnotiPadrao}
-          trackColor={{ false: "#121212", true: "#00ff00" }}
-        />
-      </View>
-
       {/* Título */}
       <Text style={styles.overlayText}>Notificações personalizadas</Text>
 
@@ -44,8 +44,8 @@ export default function Notificações() {
             style={styles.inputText}
             placeholder="Crie sua notificação"
             placeholderTextColor="#999"
-            value={notificacao1}
-            onChangeText={setNotificacao1}
+            value={notification1}
+            onChangeText={setNotification1}
           />
         </View>
 
@@ -55,28 +55,16 @@ export default function Notificações() {
             style={styles.inputText}
             placeholder="Crie sua notificação"
             placeholderTextColor="#999"
-            value={notificacao2}
-            onChangeText={setNotificacao2}
+            value={notification2}
+            onChangeText={setNotification2}
           />
         </View>
       </View>
 
-      {/* Alarme */}
-      <View style={styles.alarme}>
-        <Text style={styles.text}>Ativar alarme</Text>
-        <Switch
-          style={styles.swt}
-          value={alarmeAtivado}
-          onValueChange={setalarmeAtivado}
-          trackColor={{ false: "#121212", true: "#00ff00" }}
-        />
-        <Button
-          onPress={() => {
-            setWriteNoti(notificacao1);
-          }}
-          title="enviar"
-        />
-      </View>
+      {/* Botão estilizado */}
+      <TouchableOpacity style={styles.button} onPress={handleSendNotifications}>
+        <Text style={styles.buttonText}>Enviar Notificações</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -88,26 +76,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     padding: 20,
-  },
-
-  padrao: {
-    backgroundColor: "#fff",
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexDirection: "row",
-    height: 50,
-    width: "80%",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    ...shadow,
-  },
-
-  text: {
-    fontSize: 16,
-  },
-
-  swt: {
-    marginLeft: 10,
   },
 
   overlayText: {
@@ -153,23 +121,28 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
 
-  alarme: {
-    marginTop: 20,
-    width: "60%",
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "row",
-    height: 50,
-    borderRadius: 10,
+  button: {
+    marginTop: 30,
+    backgroundColor: "#50c878",
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 25,
     ...shadow,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 
 const shadow = {
   shadowColor: "#000",
   shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
+  shadowOpacity: 0.2,
   shadowRadius: 4,
-  elevation: 3,
+  elevation: 5,
 };

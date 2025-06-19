@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -8,12 +8,10 @@ import {
   Platform,
   SafeAreaView,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import InStyles from "../components/Input";
 import Lista from "../components/Lista";
 
 export default function Taskmanager() {
-  const [tasks, setTasks] = useState([]);
   const [visible, setVisible] = useState(false);
 
   function Abrir() {
@@ -25,44 +23,36 @@ export default function Taskmanager() {
     Keyboard.dismiss();
   }
 
-  function handleAddTask(task) {
-    if (task.trim()) {
-      setTasks((prevTasks) => [
-        ...prevTasks,
-        { id: Date.now().toString(), text: task },
-      ]);
-    }
-  }
-
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <View style={styles.container}>
-        {visible && (
-          <TouchableWithoutFeedback onPress={fechar}>
-            <View style={styles.overlay} />
-          </TouchableWithoutFeedback>
-        )}
-
-        {/* Lista de tarefas */}
-        <Lista tasks={tasks} />
-
-        {/* Input */}
-        <InStyles
-          handleAddTask={handleAddTask}
-          fechar={fechar}
-          Abrir={Abrir}
-          setVisible={setVisible}
-          visible={visible}
-        />
-      </View>
-    </KeyboardAvoidingView>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View style={styles.container}>
+          {visible && (
+            <TouchableWithoutFeedback onPress={fechar}>
+              <View style={styles.overlay} />
+            </TouchableWithoutFeedback>
+          )}
+          <Lista />
+          <InStyles
+            fechar={fechar}
+            Abrir={Abrir}
+            setVisible={setVisible}
+            visible={visible}
+          />
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   container: {
     flex: 1,
     backgroundColor: "#fff",
@@ -73,7 +63,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Fundo escuro com transparência
-    zIndex: 10, // Garante que fica acima do FlatList
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    zIndex: 10,
   },
 });

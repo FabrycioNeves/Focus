@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -12,27 +12,53 @@ import {
 import Buttonn from "../Buttonn";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
-import { useTaskGlobalStore } from "../../settingsNotifications/GlobalSatesNoti/TaskStore";
+import { scheduleNotification } from "../../settingsNotifications/ExpoNotifications.js/configNotification";
+import { useNotificationStore } from "../../settingsNotifications/GlobalSatesNoti/NotificationStore";
+import { useTaskStore } from "../../settingsNotifications/GlobalSatesNoti/TaskStore";
+import { useDateStore } from "../../settingsNotifications/GlobalSatesNoti/DateStore";
 
 const { height } = Dimensions.get("window");
 
-export default function InStyles({
-  handleAddTask,
-  Abrir,
-  setVisible,
-  visible,
-}) {
+export default function InStyles({ Abrir, setVisible, visible, fechar }) {
   const [task, setTask] = useState("");
   const router = useRouter();
 
-  const setTaskGlobal = useTaskGlobalStore((state) => state.setTaskGlobal);
+  const addTask = useTaskStore((state) => state.addTask);
+  const nextId = useTaskStore((state) => state.nextId); // pega o id que será usado na próxima task
 
-  const sendTask = () => {
-    if (task.trim()) {
-      handleAddTask(task);
-      setTaskGlobal(task);
+  const setNotification1 = useNotificationStore(
+    (state) => state.setNotification1
+  );
+  const setNotification2 = useNotificationStore(
+    (state) => state.setNotification2
+  );
+
+  const sendTask = async () => {
+    if (!task.trim()) return;
+
+    addTask(task);
+
+    // Busque a última task criada na store, por exemplo
+    const tasks = useTaskStore.getState().tasks;
+    const latestTask = tasks[tasks.length - 1];
+
+    // Também busque o finalDateTime na store (para debug)
+    const finalDateTime = useDateStore.getState().finalDateTime;
+
+    if (!finalDateTime) {
+      console.warn("finalDateTime não definido");
+      // Aqui você pode exibir uma mensagem ao usuário para definir data/hora
+      return;
+    }
+
+    if (latestTask) {
+      await scheduleNotification(latestTask);
+      // Limpar inputs e fechar modal
+      setNotification1("");
+      setNotification2("");
       setVisible(false);
       setTask("");
+      Keyboard.dismiss();
     }
   };
 
@@ -67,7 +93,17 @@ export default function InStyles({
                   color={"#50c878"}
                   onPress={() => router.push("notificacoes")}
                 />
-                <MaterialIcons name="timelapse" size={35} color={"#50c878"} />
+                <MaterialIcons
+                  name="timelapse"
+                  size={35}
+                  color={"#50c878"}
+                  onPress={() =>
+                    router.push({
+                      pathname: "TimeConfig",
+                      params: { taskId: nextId.toString() },
+                    })
+                  }
+                />
                 <MaterialIcons
                   name="check"
                   size={35}

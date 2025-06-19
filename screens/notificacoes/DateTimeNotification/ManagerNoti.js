@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   Modal,
-  Platform,
   StyleSheet,
   SafeAreaView,
   Alert,
@@ -14,18 +13,14 @@ import { MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 import ModalCalendarPicker from "../../../settingsNotifications/ModalCalendar";
-import {
-  registerForPushNotificationsAsync,
-  scheduleNotification,
-} from "../../../settingsNotifications/ExpoNotifications.js/configNotification";
-
-import { useNotificationStore } from "../../../settingsNotifications/GlobalSatesNoti/DateStore";
-
-const setFinalDateTime = useNotificationStore(
-  (state) => state.setFinalDateTime
-);
+import { useDateStore } from "../../../settingsNotifications/GlobalSatesNoti/DateStore";
+import { useRepetitionStore } from "../../../settingsNotifications/GlobalSatesNoti/RepetionsStore";
+import { Platform } from "react-native";
 
 export default function NotiTime() {
+  const setFinalDateTime = useDateStore((state) => state.setFinalDateTime);
+  const setRepetition = useRepetitionStore((state) => state.setRepetition);
+
   const [repeticoes, setRepeticoes] = useState("none");
   const [repeticoesModalVisible, setRepeticoesModalVisible] = useState(false);
 
@@ -35,32 +30,14 @@ export default function NotiTime() {
   const [selectedTime, setSelectedTime] = useState(null);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  useEffect(() => {
-    registerForPushNotificationsAsync();
-  }, []);
-
   const handlePickerChange = (itemValue) => {
     setRepeticoes(itemValue);
+    setRepetition(itemValue);
+    console.log(itemValue); // Salva no Zustand global
     setRepeticoesModalVisible(false);
   };
 
-  const getRepeticaoLabel = (valor) => {
-    //logica de label para o IOS
-    switch (valor) {
-      case "daily":
-        return "Diariamente";
-      case "weekly":
-        return "Semanalmente";
-      case "monthly":
-        return "Mensalmente";
-      case "none":
-      default:
-        return "Selecionar";
-    }
-  };
-
   const formatTime = (date) => {
-    //formatação de do time para o place holder
     return date.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
@@ -68,7 +45,6 @@ export default function NotiTime() {
   };
 
   const formatDate = (date) => {
-    //formatação do calendario para o place holder
     if (!date) return "Selecione a data";
     return date.toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -77,8 +53,19 @@ export default function NotiTime() {
     });
   };
 
+  const getRepeticaoLabel = (valor) => {
+    switch (valor) {
+      case "daily":
+        return "Diariamente";
+      case "weekly":
+        return "Semanalmente";
+      case "none":
+      default:
+        return "Selecionar";
+    }
+  };
+
   const combineDateAndTime = (date, time) => {
-    //combinação do Time e Date para enviar ao expo notification
     if (!date || !time) return null;
     const combined = new Date(date);
     combined.setHours(time.getHours());
@@ -89,7 +76,6 @@ export default function NotiTime() {
   };
 
   const onTimeChange = (event, time) => {
-    //função change para o time,enviando a hora escolhida para o selectTime em formato Date
     if (time) setSelectedTime(time);
     if (Platform.OS === "android") {
       setShowTimePicker(false);
@@ -98,19 +84,11 @@ export default function NotiTime() {
 
   const handleScheduleNotification = () => {
     const finalDateTime = combineDateAndTime(selectedDate, selectedTime);
-    if (!finalDateTime) {
-      Alert.alert("Atenção", "Selecione uma data e hora válidas!");
+    if (!finalDateTime || finalDateTime <= new Date()) {
+      Alert.alert("Atenção", "Selecione uma data e hora válidas no futuro.");
       return;
     }
-    if (finalDateTime <= new Date()) {
-      Alert.alert("Data inválida", "Escolha uma data e hora no futuro.");
-      return;
-    }
-
-    // Atualizando o Zustand store com o finalDateTime
     setFinalDateTime(finalDateTime);
-
-    scheduleNotification(finalDateTime);
     Alert.alert("Sucesso", "Notificação agendada com sucesso!");
   };
 
@@ -137,7 +115,6 @@ export default function NotiTime() {
           <MaterialIcons name="access-time" size={24} color="#a1a1a1" />
         </TouchableOpacity>
 
-        {/* Time Picker Android */}
         {showTimePicker && Platform.OS === "android" && (
           <DateTimePicker
             value={selectedTime || new Date()}
@@ -148,7 +125,6 @@ export default function NotiTime() {
           />
         )}
 
-        {/* Time Picker iOS */}
         <Modal
           visible={showTimePicker && Platform.OS === "ios"}
           transparent
@@ -202,7 +178,6 @@ export default function NotiTime() {
                     <Picker.Item label="Não repetir" value="none" />
                     <Picker.Item label="Diariamente" value="daily" />
                     <Picker.Item label="Semanalmente" value="weekly" />
-                    <Picker.Item label="Mensalmente" value="monthly" />
                   </Picker>
                   <TouchableOpacity
                     style={styles.closeButton}
@@ -218,18 +193,19 @@ export default function NotiTime() {
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={repeticoes}
-              onValueChange={setRepeticoes}
+              onValueChange={(itemValue) => {
+                setRepeticoes(itemValue);
+                setRepetition(itemValue); // Android também atualiza global
+              }}
               dropdownIconColor="#000"
             >
               <Picker.Item label="Não repetir" value="none" />
               <Picker.Item label="Diariamente" value="daily" />
               <Picker.Item label="Semanalmente" value="weekly" />
-              <Picker.Item label="Mensalmente" value="monthly" />
             </Picker>
           </View>
         )}
 
-        {/* Botão de agendamento */}
         <TouchableOpacity
           style={[styles.closeButton, { marginTop: 10 }]}
           onPress={handleScheduleNotification}
@@ -249,44 +225,26 @@ export default function NotiTime() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9f9f9",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    padding: 20,
-  },
+  container: { flex: 1, backgroundColor: "#f9f9f9", padding: 20 },
   ContForm: {
-    width: "100%",
     backgroundColor: "#fff",
     borderRadius: 20,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
     elevation: 5,
+    marginTop: 10,
   },
-  questText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
-    marginBottom: 8,
-  },
+  questText: { fontSize: 16, fontWeight: "bold", marginBottom: 8 },
   inputContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
     backgroundColor: "#f3f3f3",
     borderRadius: 10,
     paddingHorizontal: 15,
     height: 50,
     marginBottom: 20,
+    alignItems: "center",
   },
-  placeholderText: {
-    fontSize: 16,
-    color: "#a1a1a1",
-  },
+  placeholderText: { fontSize: 16, color: "#a1a1a1" },
   pickerContainer: {
     backgroundColor: "#f3f3f3",
     borderRadius: 10,
@@ -296,8 +254,8 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
   },
   modalContent: {
     backgroundColor: "#fff",
@@ -312,8 +270,5 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-  closeButtonText: {
-    color: "#fff",
-    fontSize: 16,
-  },
+  closeButtonText: { color: "#fff", fontSize: 16 },
 });
