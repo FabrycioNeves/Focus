@@ -7,8 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import { useTaskStore } from "../settingsNotifications/GlobalSatesNoti/TaskStore";
-import { useTimerConfigStore } from "../settingsNotifications/GlobalSatesNoti/TaskConfg";
+import { useTaskStore } from "../GlobalSates/TaskStore";
+import { useTimerConfigStore } from "../GlobalSates/PomodoroStore";
 import { Asset } from "expo-asset";
 import { useLocalSearchParams } from "expo-router";
 

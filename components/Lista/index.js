@@ -8,7 +8,7 @@ import {
   Animated,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { useTaskStore } from "../../settingsNotifications/GlobalSatesNoti/TaskStore";
+import { useTaskStore } from "../../GlobalSates/TaskStore";
 import { useRouter } from "expo-router";
 import { Swipeable } from "react-native-gesture-handler";
 

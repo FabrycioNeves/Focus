@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { View, Modal, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import { ptBr } from "../utils/LocaleCalendarConfig";
+import { ptBr } from "./LocaleCalendarConfig";
 
 LocaleConfig.locales["pt-br"] = ptBr;
 LocaleConfig.defaultLocale = "pt-br";

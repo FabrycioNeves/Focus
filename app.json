@@ -3,6 +3,7 @@
     "name": "Focu",
     "slug": "Focu",
     "version": "1.0.0",
+    "jsEngine": "jsc",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -20,14 +21,18 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "Focu.FabrycioNeves"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-router",
-      "expo-asset"
-    ]
+    "plugins": ["expo-router", "expo-asset", "expo-dev-client"],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c5d11f06-512a-4fb4-897e-77a18f0947bb"
+      }
+    }
   }
 }

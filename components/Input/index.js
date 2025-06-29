@@ -12,10 +12,10 @@ import {
 import Buttonn from "../Buttonn";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
-import { scheduleNotification } from "../../settingsNotifications/ExpoNotifications.js/configNotification";
-import { useNotificationStore } from "../../settingsNotifications/GlobalSatesNoti/NotificationStore";
-import { useTaskStore } from "../../settingsNotifications/GlobalSatesNoti/TaskStore";
-import { useDateStore } from "../../settingsNotifications/GlobalSatesNoti/DateStore";
+import { scheduleNotification } from "../../ExpoNotifications/ConfigNotifications";
+import { useNotificationStore } from "../../GlobalSates/NotificationsStore";
+import { useTaskStore } from "../../GlobalSates/TaskStore";
+import { useDateStore } from "../../GlobalSates/DateStore";
 
 const { height } = Dimensions.get("window");
 
@@ -88,6 +88,12 @@ export default function InStyles({ Abrir, setVisible, visible, fechar }) {
                   onPress={() => router.push("notificacoesWrite")}
                 />
                 <MaterialIcons
+                  name="notifications"
+                  size={35}
+                  color={"#50c878"}
+                  onPress={() => router.push("login")}
+                />
+                <MaterialIcons
                   name="schedule"
                   size={35}
                   color={"#50c878"}
@@ -145,7 +151,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    height: Platform.OS === "ios" ? height * 0.07 : height * 0.09,
+    height: Platform.OS === "ios" ? height * 0.06 : height * 0.09, //ajeitar e testar em celulares grandesss
     left: 0,
     bottom: 0,
     paddingRight: 10,

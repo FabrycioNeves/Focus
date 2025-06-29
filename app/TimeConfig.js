@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { useTimerConfigStore } from "../settingsNotifications/GlobalSatesNoti/TaskConfg";
+import { useTimerConfigStore } from "../GlobalSates/PomodoroStore";
 
 export default function TimeConfig() {
   const { taskId } = useLocalSearchParams();

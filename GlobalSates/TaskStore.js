@@ -5,7 +5,7 @@ import * as Notifications from "expo-notifications";
 
 export const useTaskStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       tasks: [],
       nextId: 1,
 
@@ -100,14 +100,59 @@ export const useTaskStore = create(
             ),
           };
         }),
+      deleteTask: async (id) => {
+        const state = get();
+        const task = state.tasks.find((t) => t.id === id);
 
-      deleteTask: (id) =>
-        set((state) => {
-          console.log(" Deletando tarefa com id:", id);
-          return {
-            tasks: state.tasks.filter((task) => task.id !== id),
-          };
-        }),
+        if (!task) {
+          console.warn("❌ Tarefa não encontrada para deletar");
+          return;
+        }
+
+        // 1. Cancelar notificações principais
+        try {
+          const notificationIdsJson = await AsyncStorage.getItem(
+            `NOTIFICATION_IDS_${id}`
+          );
+          if (notificationIdsJson) {
+            const notificationIds = JSON.parse(notificationIdsJson);
+            for (const notifId of notificationIds) {
+              await Notifications.cancelScheduledNotificationAsync(notifId);
+              console.log("🗑️ Notificação cancelada:", notifId);
+            }
+            await AsyncStorage.removeItem(`NOTIFICATION_IDS_${id}`);
+          }
+        } catch (e) {
+          console.error("Erro ao cancelar notificações:", e);
+        }
+
+        // 2. Cancelar lembretes
+        try {
+          const reminderIdsJson = await AsyncStorage.getItem(
+            `REMINDER_IDS_${id}`
+          );
+          if (reminderIdsJson) {
+            const reminderIds = JSON.parse(reminderIdsJson);
+            for (const remId of reminderIds) {
+              await Notifications.cancelScheduledNotificationAsync(remId);
+              console.log("🗑️ Lembrete cancelado:", remId);
+            }
+            await AsyncStorage.removeItem(`REMINDER_IDS_${id}`);
+          }
+        } catch (e) {
+          console.error("Erro ao cancelar lembretes:", e);
+        }
+
+        // 3. Remover lembrete único (caso tenha)
+        await AsyncStorage.removeItem(`REMINDER_ID_${id}`);
+
+        // 4. Remover do estado Zustand
+        set({
+          tasks: state.tasks.filter((t) => t.id !== id),
+        });
+
+        console.log("✅ Tarefa deletada com id:", id);
+      },
 
       clearTasks: () => {
         console.log(" Limpando todas as tarefas");
