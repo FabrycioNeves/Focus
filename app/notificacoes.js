@@ -174,6 +174,7 @@ export default function NotiTime() {
                   <Picker
                     selectedValue={repeticoes}
                     onValueChange={handlePickerChange}
+                    themeVariant="light"
                   >
                     <Picker.Item label="Não repetir" value="none" />
                     <Picker.Item label="Diariamente" value="daily" />

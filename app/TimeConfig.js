@@ -12,15 +12,17 @@ import { useTimerConfigStore } from "../GlobalStates/PomodoroStore";
 
 export default function TimeConfig() {
   const { taskId } = useLocalSearchParams();
-  const id = parseInt(taskId); // garante que é número
+  const id = taskId.toString();
 
-  const setTimerMinutes = useTimerConfigStore((s) => s.setTimerMinutes);
-  const setBreakMinutes = useTimerConfigStore((s) => s.setBreakMinutes);
-  const setRepetitions = useTimerConfigStore((s) => s.setRepetitions);
-
+  // Get current values
   const timer = useTimerConfigStore((s) => s.configs[id]?.timerMinutes || 0);
   const pause = useTimerConfigStore((s) => s.configs[id]?.breakMinutes || 0);
   const reps = useTimerConfigStore((s) => s.configs[id]?.repetitions || 0);
+
+  // Get setter functions
+  const setTimerMinutes = useTimerConfigStore((s) => s.setTimerMinutes);
+  const setBreakMinutes = useTimerConfigStore((s) => s.setBreakMinutes);
+  const setRepetitions = useTimerConfigStore((s) => s.setRepetitions);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedType, setSelectedType] = useState(null);
@@ -54,7 +56,7 @@ export default function TimeConfig() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Configurar Timer (ID {id})</Text>
+      <Text style={styles.title}>Configurar Timer</Text>
 
       <View style={styles.holder}>
         <TouchableOpacity

@@ -1,69 +1,40 @@
-import React, { useState } from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableWithoutFeedback,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-} from "react-native";
-import InStyles from "../components/Input";
-import Lista from "../components/Lista";
+import { Redirect } from "expo-router";
+import { useEffect, useState } from "react";
+import { View, ActivityIndicator } from "react-native";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase/firebaseConfig";
+import Taskmanager from "./TaskManager";
+import { loadUserDataFromFirestore } from "../firebase/firestore/restoreAndRescheduleAll";
 
-export default function Taskmanager() {
-  const [visible, setVisible] = useState(false);
+export default function Index() {
+  const [usuario, setUsuario] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  useEffect(() => {
+    if (auth.currentUser) {
+      loadUserDataFromFirestore(auth.currentUser.uid);
+      console.log("foi");
+    }
+  }, []);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUsuario(user ?? null);
+      setCarregando(false);
+    });
 
-  function Abrir() {
-    setVisible(true);
+    return unsubscribe;
+  }, []);
+
+  if (carregando) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
   }
 
-  function fechar() {
-    setVisible(false);
-    Keyboard.dismiss();
+  if (!usuario || !usuario.emailVerified) {
+    return <Redirect href="/auth/login" />;
   }
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <View style={styles.container}>
-          {visible && (
-            <TouchableWithoutFeedback onPress={fechar}>
-              <View style={styles.overlay} />
-            </TouchableWithoutFeedback>
-          )}
-          <Lista />
-          <InStyles
-            fechar={fechar}
-            Abrir={Abrir}
-            setVisible={setVisible}
-            visible={visible}
-          />
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+  return <Taskmanager />;
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    zIndex: 10,
-  },
-});

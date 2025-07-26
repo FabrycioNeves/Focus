@@ -17,9 +17,7 @@ import {
   sendEmailVerification,
 } from "firebase/auth";
 
-import { auth } from "../../firebase/firebaseConfig";
-
-// Import do Expo Router para navegação
+import { db, auth } from "../../firebase/firebaseConfig";
 import { useRouter } from "expo-router";
 
 export default function AuthScreen() {
@@ -40,8 +38,6 @@ export default function AuthScreen() {
         if (cred.user.emailVerified) {
           console.log("✅ Login realizado:", cred.user.email);
           setMensagem("✅ Login realizado com sucesso!");
-
-          // Navegar para a rota principal (index)
           router.push("/");
         } else {
           await signOut(auth);
@@ -54,30 +50,21 @@ export default function AuthScreen() {
       }
     } else {
       try {
+        // Cria o usuário
         const cred = await createUserWithEmailAndPassword(auth, email, senha);
         console.log("✅ Conta criada:", cred.user.email);
 
-        try {
-          // Usa a função importada sendEmailVerification, passando o usuário
-          await sendEmailVerification(cred.user);
-          console.log("📧 Email de verificação enviado para:", cred.user.email);
-          setMensagem(
-            "✅ Conta criada! Verifique seu email antes de fazer login."
-          );
-          setModo("login");
-        } catch (err) {
-          console.log(
-            "❌ Erro ao enviar email de verificação:",
-            err.code,
-            err.message
-          );
-          setMensagem(
-            "❌ Conta criada, mas erro ao enviar email de verificação."
-          );
-          setModo("login");
-        }
+        // Envia email de verificação
+        await sendEmailVerification(cred.user);
+        console.log("📧 Email de verificação enviado para:", cred.user.email);
+        setMensagem(
+          "✅ Conta criada! Verifique seu email antes de fazer login."
+        );
+        setModo("login");
       } catch (error) {
         console.log("❌ Erro ao cadastrar:", error.code, error.message);
+
+        // Mostra mensagens específicas
         if (error.code === "auth/email-already-in-use") {
           setMensagem("❌ Email já em uso.");
         } else if (error.code === "auth/weak-password") {
@@ -85,6 +72,9 @@ export default function AuthScreen() {
         } else {
           setMensagem("❌ Erro ao cadastrar.");
         }
+
+        // 🔴 Impede que o código continue após erro
+        return;
       }
     }
   };
@@ -165,7 +155,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 150,
-    height: 100,
+    height: 300,
     alignSelf: "center",
     marginBottom: 30,
   },

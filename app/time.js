@@ -14,11 +14,12 @@ import { useLocalSearchParams } from "expo-router";
 
 export default function TimerScreen() {
   const { taskId } = useLocalSearchParams();
-  const id = parseInt(taskId);
+  const id = parseInt(taskId); // Para buscar a tarefa (TaskStore)
+  const configKey = taskId.toString(); // Para acessar o store do Pomodoro
 
   const task = useTaskStore((s) => s.tasks.find((t) => t.id === id));
   const toggleTask = useTaskStore((s) => s.toggleTask);
-  const config = useTimerConfigStore((s) => s.configs[id]);
+  const config = useTimerConfigStore((s) => s.configs[configKey]);
 
   const timerMinutes = Number(config?.timerMinutes ?? 10);
   const breakMinutes = Number(config?.breakMinutes ?? 5);
@@ -45,21 +46,20 @@ export default function TimerScreen() {
           if (prev <= 1) {
             clearInterval(interval);
 
-            // Fazemos a transição fora do return
             if (!isBreak) {
               if (remainingReps > 1) {
                 setRemainingReps((r) => r - 1);
                 setIsBreak(true);
                 setSecondsLeft(breakMinutes * 60);
               } else {
-                handleComplete(); // encerra o ciclo final
+                handleComplete(); // terminou tudo
               }
             } else {
               setIsBreak(false);
               setSecondsLeft(timerMinutes * 60);
             }
 
-            return 0; // finaliza o ciclo atual
+            return 0;
           }
 
           return prev - 1;
@@ -68,7 +68,7 @@ export default function TimerScreen() {
     }
 
     return () => clearInterval(interval);
-  }, [isRunning]); // Só depende de isRunning
+  }, [isRunning]);
 
   const handleStartPause = () => setIsRunning((prev) => !prev);
 
@@ -104,6 +104,7 @@ export default function TimerScreen() {
         <Text>Tarefa não encontrada.</Text>
       </View>
     );
+
   if (!isImageLoaded)
     return (
       <View style={styles.loadingContainer}>
@@ -116,7 +117,7 @@ export default function TimerScreen() {
       <Image source={require("../assets/ampulheta.png")} style={styles.image} />
       <Text style={styles.timer}>{formatTime(secondsLeft)}</Text>
       <Text style={{ fontSize: 18, marginBottom: 10 }}>
-        {isBreak ? "Pausa" : "Task"} • Repetições restantes: {remainingReps}
+        {isBreak ? "Pausa" : "Tarefa"} • Repetições restantes: {remainingReps}
       </Text>
 
       <View style={styles.buttonsContainer}>

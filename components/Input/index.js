@@ -16,6 +16,8 @@ import { scheduleNotification } from "../../ExpoNotifications/ConfigNotification
 import { useNotificationStore } from "../../GlobalStates/NotificationsStore";
 import { useTaskStore } from "../../GlobalStates/TaskStore";
 import { useDateStore } from "../../GlobalStates/DateStore";
+import { salvarTudo } from "../../firebase/firestore/saveAllZustandData";
+import { getAuth } from "firebase/auth";
 
 const { height } = Dimensions.get("window");
 
@@ -36,30 +38,38 @@ export default function InStyles({ Abrir, setVisible, visible, fechar }) {
   const sendTask = async () => {
     if (!task.trim()) return;
 
-    addTask(task);
+    addTask(task, finalDateTime);
 
-    // Busque a última task criada na store, por exemplo
     const tasks = useTaskStore.getState().tasks;
     const latestTask = tasks[tasks.length - 1];
-
-    // Também busque o finalDateTime na store (para debug)
     const finalDateTime = useDateStore.getState().finalDateTime;
+
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      await salvarTudo(user.uid);
+    } else {
+      console.warn("Usuário não autenticado, salvamento ignorado");
+    }
 
     if (!finalDateTime) {
       console.warn("finalDateTime não definido");
-      // Aqui você pode exibir uma mensagem ao usuário para definir data/hora
       return;
     }
 
-    if (latestTask) {
-      await scheduleNotification(latestTask);
-      // Limpar inputs e fechar modal
-      setNotification1("");
-      setNotification2("");
-      setVisible(false);
-      setTask("");
-      Keyboard.dismiss();
+    try {
+      await scheduleNotification(latestTask); // 🔔 agendamento restaurado aqui
+      console.log("✅ Notificação agendada para:", finalDateTime.toString());
+    } catch (error) {
+      console.error("❌ Erro ao agendar notificação:", error);
     }
+
+    setNotification1("");
+    setNotification2("");
+    setVisible(false);
+    setTask("");
+    Keyboard.dismiss();
   };
 
   return (
@@ -85,7 +95,7 @@ export default function InStyles({ Abrir, setVisible, visible, fechar }) {
                   name="notifications"
                   size={35}
                   color={"#50c878"}
-                  onPress={() => router.push("notificacoesWrite")}
+                  onPress={() => router.push("NotificacoesWrite")}
                 />
 
                 <MaterialIcons
@@ -93,6 +103,12 @@ export default function InStyles({ Abrir, setVisible, visible, fechar }) {
                   size={35}
                   color={"#50c878"}
                   onPress={() => router.push("notificacoes")}
+                />
+                <MaterialIcons
+                  name="schedule"
+                  size={35}
+                  color={"#50c878"}
+                  onPress={() => router.push("auth/login")}
                 />
                 <MaterialIcons
                   name="timelapse"

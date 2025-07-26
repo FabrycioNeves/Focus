@@ -1,36 +1,38 @@
-import { Stack, Redirect } from "expo-router";
-import { useEffect, useState } from "react";
-import { View, ActivityIndicator } from "react-native";
-import { auth } from "../firebase/firebaseConfig";
+import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { registerForPushNotificationsAsync } from "../ExpoNotifications/ConfigNotifications";
+import { useEffect } from "react";
+import { loadUserDataFromFirestore } from "../firebase/firestore/restoreAndRescheduleAll";
+import { auth } from "../firebase/firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
+import { salvarTudo } from "../firebase/firestore/saveAllZustandData";
 
 export default function RootLayout() {
-  const [usuario, setUsuario] = useState(null);
-  const [carregando, setCarregando] = useState(true);
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUsuario(user ?? null);
-      setCarregando(false);
-      console.log(user);
+      if (user?.uid) {
+        (async () => {
+          try {
+            await loadUserDataFromFirestore(user.uid);
+
+            console.log("✅ Dados carregados no RootLayout.");
+          } catch (err) {
+            console.error("❌ Erro no RootLayout:", err.message || err);
+          }
+        })();
+      }
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
-  if (carregando) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false }} />
-      {usuario ? <Redirect href="" /> : <Redirect href="/auth/login" />}
     </GestureHandlerRootView>
   );
 }

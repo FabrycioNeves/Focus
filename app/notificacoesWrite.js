@@ -5,38 +5,29 @@ import {
   TextInput,
   Text,
   TouchableOpacity,
+  Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+
+// Stores globais
 import { useTaskStore } from "../GlobalStates/TaskStore";
 import { useNotificationStore } from "../GlobalStates/NotificationsStore";
 
-export default function Notificações() {
+export default function NotificacoesWrite() {
   const { tasks } = useTaskStore();
-  // Obtém o valor atual de notification1 do Zustand
+
   const notification1 = useNotificationStore((state) => state.notification1);
+  const notification2 = useNotificationStore((state) => state.notification2);
   const setNotification1 = useNotificationStore(
-    // Função para atualizar notification1 no Zustand
     (state) => state.setNotification1
   );
-  // Obtém o valor atual de notification2 do Zustand
-  const notification2 = useNotificationStore((state) => state.notification2);
   const setNotification2 = useNotificationStore(
-    // Função para atualizar notification2 no Zustand
     (state) => state.setNotification2
   );
-  // Função que será chamada ao clicar no botão "Enviar Notificações"
-  const handleSendNotifications = () => {
-    // Apenas loga no console os valores atuais de notification1 e notification2
-    console.log("Notificação 1:", notification1);
-    console.log("Notificação 2:", notification2);
-  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Título */}
+    <View style={styles.container}>
       <Text style={styles.overlayText}>Notificações personalizadas</Text>
 
-      {/* Inputs personalizados */}
       <View style={styles.holders}>
         <Text style={styles.textoNoti}>Notificação 1:</Text>
         <View style={styles.contInput}>
@@ -61,13 +52,31 @@ export default function Notificações() {
         </View>
       </View>
 
-      {/* Botão estilizado */}
-      <TouchableOpacity style={styles.button} onPress={handleSendNotifications}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          console.log("Notificação 1:", notification1);
+          console.log("Notificação 2:", notification2);
+          console.log("Tarefas atuais:", tasks);
+        }}
+      >
         <Text style={styles.buttonText}>Enviar Notificações</Text>
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }
+
+const shadow = Platform.select({
+  ios: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  android: {
+    elevation: 5,
+  },
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -77,17 +86,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
-
   overlayText: {
     fontSize: 16,
     marginTop: 25,
     alignSelf: "flex-start",
-    marginLeft: "10%",
+    marginLeft: 20,
   },
-
   holders: {
     marginTop: 15,
-    width: "80%",
+    width: "100%",
     backgroundColor: "#fff",
     borderRadius: 10,
     justifyContent: "flex-start",
@@ -96,14 +103,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     ...shadow,
   },
-
   textoNoti: {
     alignSelf: "flex-start",
     fontSize: 16,
     marginLeft: 10,
     marginTop: 10,
   },
-
   contInput: {
     marginTop: 10,
     width: "100%",
@@ -113,14 +118,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 15,
   },
-
   inputText: {
     flex: 1,
     fontSize: 16,
     color: "black",
-    paddingVertical: 0,
+    paddingVertical: Platform.OS === "ios" ? 10 : 5,
   },
-
   button: {
     marginTop: 30,
     backgroundColor: "#50c878",
@@ -131,18 +134,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
 });
-
-const shadow = {
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.2,
-  shadowRadius: 4,
-  elevation: 5,
-};

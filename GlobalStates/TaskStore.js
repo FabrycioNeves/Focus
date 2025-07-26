@@ -2,23 +2,26 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
+import { useDateStore } from "./DateStore";
 
 export const useTaskStore = create(
   persist(
     (set, get) => ({
       tasks: [],
       nextId: 1,
-
       addTask: (text) =>
         set((state) => {
+          const finalDateTime = useDateStore.getState().finalDateTime;
+
           const newTask = {
             id: state.nextId,
             text,
             completed: false,
             notificationId: null,
             reminderId: null,
+            finalDateTime: finalDateTime || null, // adiciona o finalDateTime aqui
           };
-          console.log(" Nova tarefa adicionada:", newTask);
+
           return {
             tasks: [...state.tasks, newTask],
             nextId: state.nextId + 1,

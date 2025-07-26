@@ -1,38 +1,48 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const useTimerConfigStore = create((set) => ({
-  configs: {},
+export const useTimerConfigStore = create(
+  persist(
+    (set) => ({
+      configs: {},
 
-  setTimerMinutes: (taskId, minutes) =>
-    set((state) => ({
-      configs: {
-        ...state.configs,
-        [taskId]: {
-          ...state.configs[taskId],
-          timerMinutes: minutes,
-        },
-      },
-    })),
+      setTimerMinutes: (id, minutes) =>
+        set((state) => ({
+          configs: {
+            ...state.configs,
+            [id]: {
+              ...state.configs[id],
+              timerMinutes: minutes,
+            },
+          },
+        })),
 
-  setBreakMinutes: (taskId, minutes) =>
-    set((state) => ({
-      configs: {
-        ...state.configs,
-        [taskId]: {
-          ...state.configs[taskId],
-          breakMinutes: minutes,
-        },
-      },
-    })),
+      setBreakMinutes: (id, minutes) =>
+        set((state) => ({
+          configs: {
+            ...state.configs,
+            [id]: {
+              ...state.configs[id],
+              breakMinutes: minutes,
+            },
+          },
+        })),
 
-  setRepetitions: (taskId, reps) =>
-    set((state) => ({
-      configs: {
-        ...state.configs,
-        [taskId]: {
-          ...state.configs[taskId],
-          repetitions: reps,
-        },
-      },
-    })),
-}));
+      setRepetitions: (id, reps) =>
+        set((state) => ({
+          configs: {
+            ...state.configs,
+            [id]: {
+              ...state.configs[id],
+              repetitions: reps,
+            },
+          },
+        })),
+    }),
+    {
+      name: "timer-config-storage",
+      storage: createJSONStorage(() => AsyncStorage), // ✅ ESSENCIAL!
+    }
+  )
+);
