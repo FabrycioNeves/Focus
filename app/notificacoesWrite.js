@@ -88,9 +88,9 @@ const styles = StyleSheet.create({
   },
   overlayText: {
     fontSize: 16,
-    marginTop: 25,
+    marginTop: 65,
     alignSelf: "flex-start",
-    marginLeft: 20,
+    marginLeft: 5,
   },
   holders: {
     marginTop: 15,

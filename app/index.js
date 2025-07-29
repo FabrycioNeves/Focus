@@ -9,12 +9,7 @@ import { loadUserDataFromFirestore } from "../firebase/firestore/restoreAndResch
 export default function Index() {
   const [usuario, setUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);
-  useEffect(() => {
-    if (auth.currentUser) {
-      loadUserDataFromFirestore(auth.currentUser.uid);
-      console.log("foi");
-    }
-  }, []);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUsuario(user ?? null);

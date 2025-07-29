@@ -3,6 +3,8 @@ import { persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useDateStore } from "./DateStore";
+import { useNotificationStore } from "./NotificationsStore";
+import { useRepetitionStore } from "./RepetionsStore";
 
 export const useTaskStore = create(
   persist(
@@ -12,14 +14,19 @@ export const useTaskStore = create(
       addTask: (text) =>
         set((state) => {
           const finalDateTime = useDateStore.getState().finalDateTime;
-
+          const notification1 = useNotificationStore.getState().notification1;
+          const notification2 = useNotificationStore.getState().notification2;
+          const repetition = useRepetitionStore.getState().repetition;
           const newTask = {
             id: state.nextId,
             text,
             completed: false,
             notificationId: null,
             reminderId: null,
-            finalDateTime: finalDateTime || null, // adiciona o finalDateTime aqui
+            finalDateTime: finalDateTime || null,
+            notification1: notification1 || null,
+            notification2: notification2 || null,
+            repetition: repetition || null,
           };
 
           return {

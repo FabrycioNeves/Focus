@@ -19,6 +19,7 @@ import {
 
 import { db, auth } from "../../firebase/firebaseConfig";
 import { useRouter } from "expo-router";
+import { loadUserDataFromFirestore } from "../../firebase/firestore/restoreAndRescheduleAll";
 
 export default function AuthScreen() {
   const [modo, setModo] = useState("login");
@@ -36,6 +37,7 @@ export default function AuthScreen() {
         const cred = await signInWithEmailAndPassword(auth, email, senha);
 
         if (cred.user.emailVerified) {
+          await loadUserDataFromFirestore(cred.user.uid); // <-- Agora realmente carrega os dados
           console.log("✅ Login realizado:", cred.user.email);
           setMensagem("✅ Login realizado com sucesso!");
           router.push("/");

@@ -29,6 +29,7 @@ export async function scheduleNotification(task) {
   const { notification1, notification2 } = useNotificationStore.getState();
   const { repetition } = useRepetitionStore.getState();
   const { updateTaskNotificationId } = useTaskStore.getState();
+  console.log(finalDateTime);
 
   if (!task || !finalDateTime) {
     console.warn("❌ Tarefa ou data não encontrada");

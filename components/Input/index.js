@@ -97,19 +97,13 @@ export default function InStyles({ Abrir, setVisible, visible, fechar }) {
                   color={"#50c878"}
                   onPress={() => router.push("NotificacoesWrite")}
                 />
-
                 <MaterialIcons
                   name="schedule"
                   size={35}
                   color={"#50c878"}
                   onPress={() => router.push("notificacoes")}
                 />
-                <MaterialIcons
-                  name="schedule"
-                  size={35}
-                  color={"#50c878"}
-                  onPress={() => router.push("auth/login")}
-                />
+
                 <MaterialIcons
                   name="timelapse"
                   size={35}
